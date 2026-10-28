@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Check-in Transporte</title>
+<meta name="description" content="Check-in de embarque do transporte de colaboradores">
+<meta name="theme-color" content="#0B1B33">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Check-in">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B1B33; --navy-2:#12294D; --ink:#0E1A2B; --ink-2:#4A5B73; --ink-3:#8392A8;
+  --bg:#EEF2F7; --card:#FFFFFF; --line:#E1E7EF;
+  --verde:#00B37E; --verde-2:#00D394; --verde-bg:#E3F8F0;
+  --azul:#2F6BFF; --ciano:#19C3E6;
+  --ambar:#F5A524; --ambar-bg:#FFF4DF;
+  --vermelho:#E5484D; --vermelho-bg:#FDECEC;
+  --raio:22px; --sombra:0 10px 30px -12px rgba(11,27,51,.25);
+  --topo:env(safe-area-inset-top,0px); --base:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input{font:inherit}
+.app{min-height:100dvh;display:flex;flex-direction:column;max-width:520px;margin:0 auto;position:relative;overflow:hidden}
+
+/* ---------- TOPO ---------- */
+.topo{position:relative;background:radial-gradient(120% 140% at 0% 0%,#1B3E73 0%,var(--navy) 55%);color:#fff;
+  padding:calc(var(--topo) + 16px) 20px 64px;border-radius:0 0 32px 32px;overflow:hidden}
+.topo::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(25,195,230,.35),transparent 65%)}
+.barra{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.marca{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--verde-2),var(--ciano));
+  display:grid;place-items:center;box-shadow:0 6px 18px -6px rgba(0,211,148,.7)}
+.marca svg{width:24px;height:24px}
+.barra .tt{flex:1;line-height:1.15}
+.barra .tt b{display:block;font-size:17px;font-weight:800;letter-spacing:-.2px}
+.barra .tt span{font-size:12.5px;color:#A9B9D3;font-weight:500}
+.chip-rede{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:rgba(255,255,255,.1);
+  padding:7px 11px;border-radius:99px;backdrop-filter:blur(6px)}
+.chip-rede i{width:8px;height:8px;border-radius:50%;background:var(--verde-2);box-shadow:0 0 0 3px rgba(0,211,148,.25)}
+.chip-rede.off i{background:var(--ambar);box-shadow:0 0 0 3px rgba(245,165,36,.25)}
+.saud{position:relative;z-index:1;margin-top:22px}
+.saud small{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#A9B9D3;font-weight:600}
+.saud h1{margin:4px 0 0;font-size:26px;font-weight:800;letter-spacing:-.6px;line-height:1.15}
+.relogio{font-size:13px;font-weight:700;color:#CFE0FA;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:5px;flex:none}
+.relogio svg{width:15px;height:15px;opacity:.8}
+
+/* ---------- CONTEÚDO ---------- */
+main{flex:1;margin-top:-44px;padding:0 16px calc(var(--base) + 24px);position:relative;z-index:2}
+.tela{display:none;animation:entra .38s cubic-bezier(.2,.8,.2,1)}
+.tela.ativa{display:block}
+@keyframes entra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--raio);box-shadow:var(--sombra);padding:20px}
+.card+.card{margin-top:14px}
+h2{font-size:21px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px}
+p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.5}
+.mt{margin-top:16px}
+
+.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:16px;
+  font-weight:700;font-size:16.5px;transition:transform .12s,box-shadow .2s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn svg{width:20px;height:20px}
+.btn-pri{background:linear-gradient(135deg,var(--verde),#00A6A6);color:#fff;box-shadow:0 12px 24px -12px rgba(0,179,126,.9)}
+.btn-sec{background:#F1F4F9;color:var(--ink)}
+.btn-link{height:44px;color:var(--ink-2);font-weight:600;font-size:14.5px}
+.btn[disabled]{opacity:.55;pointer-events:none}
+
+/* ---------- BOAS-VINDAS ---------- */
+.passos{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px}
+.passos li{display:flex;align-items:center;gap:14px;font-weight:600;font-size:15px}
+.passos .n{width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;font-weight:800;
+  background:var(--verde-bg);color:var(--verde)}
+.passos li small{display:block;font-weight:500;color:var(--ink-3);font-size:13px}
+.lgpd{margin-top:18px;background:#F5F7FB;border:1px solid var(--line);border-radius:16px;padding:14px 14px 14px 46px;
+  position:relative;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.lgpd svg{position:absolute;left:14px;top:14px;width:20px;height:20px;color:var(--azul)}
+.lgpd b{color:var(--ink)}
+
+/* ---------- BUSCA ---------- */
+.campo{position:relative;margin-top:16px}
+.campo svg.lupa{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--ink-3)}
+.campo input{width:100%;height:58px;border-radius:16px;border:2px solid var(--line);background:#F8FAFD;
+  padding:0 48px 0 48px;font-size:17px;font-weight:600;color:var(--ink);outline:none;transition:border .2s,background .2s}
+.campo input:focus{border-color:var(--azul);background:#fff}
+.campo input::placeholder{color:var(--ink-3);font-weight:500}
+.campo input::-webkit-search-cancel-button,.campo input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+.limpar{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:12px;
+  display:none;place-items:center;color:var(--ink-3)}
+.limpar.on{display:grid}
+.limpar svg{width:18px;height:18px}
+.dica{font-size:13px;color:var(--ink-3);margin-top:10px;font-weight:500;min-height:18px}
+.lista{display:grid;gap:8px;margin-top:8px}
+.item{display:flex;align-items:center;gap:14px;text-align:left;padding:12px;border-radius:16px;background:#fff;
+  border:1.5px solid var(--line);transition:border .15s,transform .12s;animation:entra .3s both}
+.item:active{transform:scale(.985);border-color:var(--azul)}
+.av{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:15px;
+  color:#fff;background:linear-gradient(135deg,#2F6BFF,#19C3E6)}
+.item .tx{flex:1;min-width:0}
+.item .nm{font-weight:700;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .nm mark{background:#DCE8FF;color:var(--azul);border-radius:4px;padding:0 1px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:8px;background:#F1F4F9;color:var(--ink-2)}
+.tag.l{background:var(--verde-bg);color:#047857}
+.item .seta{width:18px;height:18px;color:var(--ink-3);flex:none}
+.esq{height:70px;border-radius:16px;background:linear-gradient(90deg,#EEF2F7 0%,#F8FAFD 50%,#EEF2F7 100%);
+  background-size:200% 100%;animation:brilho 1.2s infinite}
+@keyframes brilho{to{background-position:-200% 0}}
+.vazio{text-align:center;padding:26px 10px 10px;color:var(--ink-3);font-size:14.5px}
+.vazio b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+
+/* ---------- CONFIRMAR ---------- */
+.perfil-box{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:#F5F7FB;margin-top:16px}
+.perfil-box .av{width:54px;height:54px;font-size:18px;border-radius:16px}
+.perfil-box b{font-size:17px;display:block;line-height:1.25}
+.alerta{display:flex;gap:12px;margin-top:14px;padding:14px;border-radius:16px;background:var(--ambar-bg);color:#8A5A00;
+  font-size:13.5px;line-height:1.45;font-weight:500}
+.alerta svg{width:20px;height:20px;flex:none;margin-top:1px}
+
+/* ---------- PRINCIPAL ---------- */
+.info{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:16px;overflow:hidden;margin-top:2px}
+.info div{background:#fff;padding:12px 14px}
+.info div.full{grid-column:1/-1}
+.info small{display:block;font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
+.info b{display:block;font-size:16px;margin-top:3px;font-weight:700;word-break:break-word}
+.info b.grande{font-size:22px;letter-spacing:-.4px}
+
+.status{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;font-size:14px;font-weight:600;margin-top:14px}
+.status i{width:10px;height:10px;border-radius:50%;flex:none}
+.status.aberta{background:var(--verde-bg);color:#046C4E}.status.aberta i{background:var(--verde);animation:pisca 1.6s infinite}
+.status.fechada{background:#F1F4F9;color:var(--ink-2)}.status.fechada i{background:var(--ink-3)}
+.status.feito{background:var(--verde-bg);color:#046C4E}.status.feito i{background:var(--verde)}
+.status.aviso{background:var(--ambar-bg);color:#8A5A00}.status.aviso i{background:var(--ambar)}
+.status span{flex:1}
+.status em{font-style:normal;font-variant-numeric:tabular-nums;font-weight:800}
+@keyframes pisca{50%{box-shadow:0 0 0 6px rgba(0,179,126,.15)}}
+.prog{height:6px;border-radius:9px;background:#E1E7EF;margin-top:10px;overflow:hidden;display:none}
+.prog.on{display:block}
+.prog div{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--verde),var(--ciano));transition:width 1s linear}
+
+.palco{display:grid;place-items:center;padding:30px 0 12px}
+.botao-ck{position:relative;width:212px;height:212px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  background:radial-gradient(circle at 30% 25%,#22E3A7 0%,var(--verde) 45%,#008F78 100%);
+  box-shadow:0 22px 40px -14px rgba(0,150,110,.75),inset 0 -8px 18px rgba(0,0,0,.12),inset 0 6px 14px rgba(255,255,255,.25);
+  transition:transform .15s, filter .3s}
+.botao-ck:active{transform:scale(.96)}
+.botao-ck::before,.botao-ck::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid rgba(0,179,126,.35);
+  animation:onda 2.4s infinite cubic-bezier(.2,.6,.3,1)}
+.botao-ck::after{animation-delay:1.2s}
+@keyframes onda{from{transform:scale(.92);opacity:1}to{transform:scale(1.28);opacity:0}}
+.botao-ck .ct{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.botao-ck svg{width:58px;height:58px}
+.botao-ck b{font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.2;text-align:center}
+.botao-ck small{font-size:12.5px;font-weight:600;opacity:.85}
+.botao-ck.fechado{background:radial-gradient(circle at 30% 25%,#C9D3E1 0%,#9AA9BF 60%,#8796AD 100%);
+  box-shadow:0 18px 30px -16px rgba(11,27,51,.45),inset 0 6px 14px rgba(255,255,255,.3);pointer-events:none}
+.botao-ck.fechado::before,.botao-ck.fechado::after,.botao-ck.feito::before,.botao-ck.feito::after,
+.botao-ck.enviando::before,.botao-ck.enviando::after{display:none}
+.botao-ck.feito{background:#fff;color:var(--verde);box-shadow:0 18px 36px -18px rgba(0,150,110,.6),inset 0 0 0 6px var(--verde-bg);pointer-events:none}
+.botao-ck.enviando{pointer-events:none;filter:saturate(.9)}
+.giro{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.legenda{text-align:center;font-size:13.5px;color:var(--ink-3);font-weight:500;margin-top:4px;min-height:20px}
+
+.fila{display:none;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--ambar-bg);
+  color:#8A5A00;font-size:13.5px;font-weight:600}
+.fila.on{display:flex}
+.fila svg{width:18px;height:18px;flex:none}
+
+.instalar{display:none;align-items:center;gap:12px;margin-top:14px;padding:14px;border-radius:18px;
+  background:linear-gradient(135deg,#12294D,#0B1B33);color:#fff}
+.instalar.on{display:flex}
+.instalar .ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center;flex:none}
+.instalar .ic svg{width:22px;height:22px}
+.instalar .tx{flex:1;font-size:13px;line-height:1.4;color:#C9D6EC}
+.instalar .tx b{display:block;color:#fff;font-size:14.5px}
+.instalar .ok{background:#fff;color:var(--navy);font-weight:700;font-size:13.5px;padding:9px 14px;border-radius:11px;flex:none}
+.instalar .x{color:#8FA3C4;width:28px;height:28px;display:grid;place-items:center;flex:none}
+.instalar .x svg{width:16px;height:16px}
+.rodape{text-align:center;font-size:12.5px;color:var(--ink-3);margin-top:18px;line-height:1.5}
+
+/* ---------- SUCESSO ---------- */
+.ok-topo{text-align:center;padding:8px 0 4px}
+.selo{width:112px;height:112px;margin:6px auto 14px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:radial-gradient(circle at 30% 25%,#22E3A7,var(--verde) 55%,#008F78);box-shadow:0 20px 40px -16px rgba(0,150,110,.8)}
+.selo.off{background:radial-gradient(circle at 30% 25%,#FFC560,var(--ambar) 55%,#D98A0B);box-shadow:0 20px 40px -16px rgba(217,138,11,.7)}
+.selo svg{width:56px;height:56px}
+.selo svg path{stroke-dasharray:40;stroke-dashoffset:40;animation:traco .55s .15s cubic-bezier(.6,0,.3,1) forwards}
+@keyframes traco{to{stroke-dashoffset:0}}
+.selo::after{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid currentColor;color:rgba(0,179,126,.5);
+  animation:explode .9s .1s ease-out forwards;opacity:0}
+.selo.off::after{color:rgba(245,165,36,.5)}
+@keyframes explode{from{transform:scale(.8);opacity:1}to{transform:scale(1.7);opacity:0}}
+.ticket{margin-top:16px;border-radius:18px;background:#F5F7FB;padding:4px 16px;position:relative}
+.ticket div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px dashed #D3DCE8;font-size:14.5px}
+.ticket div:last-child{border:0}
+.ticket span{color:var(--ink-3);font-weight:600}
+.ticket b{text-align:right}
+.ticket b.big{font-size:20px;font-variant-numeric:tabular-nums}
+
+/* ---------- AVISO ---------- */
+.aviso-ic{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;margin-bottom:16px;
+  background:var(--vermelho-bg);color:var(--vermelho)}
+.aviso-ic.info{background:#E7EEFF;color:var(--azul)}
+.aviso-ic.ambar{background:var(--ambar-bg);color:var(--ambar)}
+.aviso-ic svg{width:34px;height:34px}
+
+/* ---------- CARREGANDO / TOAST / DEMO ---------- */
+.carregando{display:grid;place-items:center;padding:60px 0}
+.carregando .giro{border-color:#D6DEE9;border-top-color:var(--verde)}
+.toast{position:fixed;left:50%;bottom:calc(var(--base) + 20px);transform:translate(-50%,140%);max-width:min(480px,calc(100% - 32px));
+  width:max-content;background:var(--navy);color:#fff;padding:13px 18px;border-radius:14px;font-size:14px;font-weight:600;
+  box-shadow:0 14px 30px -10px rgba(11,27,51,.5);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:50;text-align:center}
+.toast.on{transform:translate(-50%,0)}
+.demo{position:relative;z-index:1;display:none;margin-top:12px;font-size:12px;font-weight:700;color:#FFD88A;
+  background:rgba(245,165,36,.14);border:1px solid rgba(245,165,36,.35);padding:6px 10px;border-radius:10px;width:max-content}
+.demo.on{display:block}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topo">
+    <div class="barra">
+      <div class="marca" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/><circle cx="8.5" cy="14.5" r=".6" fill="#fff"/><circle cx="15.5" cy="14.5" r=".6" fill="#fff"/></svg>
+      </div>
+      <div class="tt"><b>Check-in</b><span>Transporte BYD</span></div>
+      <div class="chip-rede" id="rede"><i></i><span>Online</span></div>
+    </div>
+    <div class="saud">
+      <small><span id="saudData">&nbsp;</span><span class="relogio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="relogio">--:--</span></span></small>
+      <h1 id="saudTitulo">Embarque com um toque</h1>
+    </div>
+    <div class="demo" id="demo">Modo demonstração · sem servidor</div>
+  </header>
+
+  <main>
+    <!-- CARREGANDO -->
+    <section class="tela ativa" data-tela="carregando">
+      <div class="card carregando"><div class="giro"></div></div>
+    </section>
+
+    <!-- BOAS-VINDAS -->
+    <section class="tela" data-tela="boasvindas">
+      <div class="card">
+        <h2>Bem-vindo ao check-in</h2>
+        <p>Registre seu embarque no transporte em poucos segundos.</p>
+        <ul class="passos">
+          <li><span class="n">1</span><div>Encontre seu nome<small>Só na primeira vez</small></div></li>
+          <li><span class="n">2</span><div>Confirme que é você<small>Este celular fica vinculado ao seu nome</small></div></li>
+          <li><span class="n">3</span><div>Toque em Confirmar embarque<small>Todos os dias, ao entrar no ônibus</small></div></li>
+        </ul>
+        <div class="lgpd">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          <b>Privacidade (LGPD):</b> coletamos seu <b>nome, roteiro, data, hora e a localização no momento do embarque</b>,
+          apenas para controle do transporte de colaboradores. A localização é lida somente quando você faz o check-in.
+        </div>
+        <button class="btn btn-pri mt" id="btnAceitar">Aceitar e começar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- BUSCA -->
+    <section class="tela" data-tela="busca">
+      <div class="card">
+        <h2>Encontre seu nome</h2>
+        <p>Digite seu nome como está no cadastro do transporte.</p>
+        <div class="campo">
+          <svg class="lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="busca" type="search" placeholder="Ex.: Maria Silva" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search">
+          <button class="limpar" id="limpar" aria-label="Limpar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div class="dica" id="dica">Digite pelo menos 3 letras</div>
+        <div class="lista" id="lista"></div>
+      </div>
+    </section>
+
+    <!-- CONFIRMAR -->
+    <section class="tela" data-tela="confirmar">
+      <div class="card">
+        <h2>É você?</h2>
+        <p>Confira seus dados antes de continuar.</p>
+        <div class="perfil-box">
+          <div class="av" id="cfAv"></div>
+          <div><b id="cfNome"></b><div class="tags" id="cfTags"></div></div>
+        </div>
+        <div class="alerta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+          <div>Este celular ficará <b>vinculado ao seu nome</b>. Para trocar de aparelho, será preciso procurar a equipe de transporte.</div>
+        </div>
+        <button class="btn btn-pri mt" id="btnSouEu">Sim, sou eu</button>
+        <button class="btn btn-link" id="btnVoltar">Não sou eu, voltar</button>
+      </div>
+    </section>
+
+    <!-- PRINCIPAL -->
+    <section class="tela" data-tela="principal">
+      <div class="card">
+        <div class="info">
+          <div class="full"><small>Roteiro</small><b class="grande" id="pLinha">—</b></div>
+          <div><small>Turno</small><b id="pTurno">—</b></div>
+          <div><small>Hora da parada</small><b id="pParada">—</b></div>
+        </div>
+        <div class="status fechada" id="pStatus"><i></i><span id="pStatusTx">Carregando…</span><em id="pConta"></em></div>
+        <div class="prog" id="pProg"><div id="pProgBar" style="width:0"></div></div>
+
+        <div class="palco">
+          <button class="botao-ck" id="btnCheckin" aria-live="polite">
+            <span class="ct" id="btnCt"></span>
+          </button>
+        </div>
+        <div class="legenda" id="pLegenda"></div>
+
+        <div class="fila" id="pFila">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg>
+          <span id="pFilaTx"></span>
+        </div>
+      </div>
+
+      <div class="instalar" id="cardInstalar">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div>
+        <div class="tx" id="instTx"><b>Instale o app</b>Acesso mais rápido e sua identificação fica salva.</div>
+        <button class="ok" id="instOk">Instalar</button>
+        <button class="x" id="instX" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <p class="rodape">Dados incorretos ou não é você?<br>Procure a equipe de transporte.</p>
+    </section>
+
+    <!-- SUCESSO -->
+    <section class="tela" data-tela="sucesso">
+      <div class="card">
+        <div class="ok-topo">
+          <div class="selo" id="sSelo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <h2 id="sTitulo">Embarque confirmado</h2>
+          <p id="sSub">Boa viagem!</p>
+        </div>
+        <div class="ticket">
+          <div><span>Passageiro</span><b id="sNome"></b></div>
+          <div><span>Roteiro</span><b id="sLinha"></b></div>
+          <div><span>Data</span><b id="sData"></b></div>
+          <div><span>Hora</span><b class="big" id="sHora"></b></div>
+          <div><span>Localização</span><b id="sLocal"></b></div>
+        </div>
+        <button class="btn btn-sec mt" id="btnPronto">Pronto</button>
+      </div>
+    </section>
+
+    <!-- AVISO -->
+    <section class="tela" data-tela="aviso">
+      <div class="card">
+        <div class="aviso-ic" id="aIc"></div>
+        <h2 id="aTitulo"></h2>
+        <p id="aMsg"></p>
+        <button class="btn btn-pri mt" id="aBtn"></button>
+        <button class="btn btn-link" id="aBtn2" style="display:none"></button>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =================== CONFIGURAÇÃO =================== */
+// Cole aqui a URL do App da Web do Apps Script (termina em /exec).
+// Vazio = modo demonstração, com dados de exemplo.
+const API_URL = 'https://script.google.com/macros/s/AKfycbzAe16hqX8pXXf4kEUTaEqP4o9k27KKqUjTVdocOtpxV-ffbOxd9kp9cYdtuITF7HW1/exec';
+
+/* =================================================== */
+const DEMO = !API_URL;
+const FUSO = 'America/Bahia';
+const MIN_ANTES = 90, MIN_DEPOIS = 30;
+const K = { aparelho:'ckbyd.aparelho', perfil:'ckbyd.perfil', lgpd:'ckbyd.lgpd', fila:'ckbyd.fila',
+            feito:'ckbyd.feito', inst:'ckbyd.instalar', desvio:'ckbyd.desvio' };
+
+const $ = id => document.getElementById(id);
+const ls = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+const estado = { perfil:null, desvio: ls.get(K.desvio, 0), enviando:false, botao:'', sel:null };
+const agora = () => new Date(Date.now() + (estado.desvio || 0));
+
+/* ---------- Ícones ---------- */
+const IC = {
+  bus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/><circle cx="8.5" cy="14.5" r=".7" fill="currentColor"/><circle cx="15.5" cy="14.5" r=".7" fill="currentColor"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  relogio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  alerta:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>',
+  cel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>',
+  seta:'<svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'
+};
+
+/* ---------- Formatação ---------- */
+const fHora = new Intl.DateTimeFormat('pt-BR', { timeZone:FUSO, hour:'2-digit', minute:'2-digit' });
+const fData = new Intl.DateTimeFormat('pt-BR', { timeZone:FUSO, day:'2-digit', month:'2-digit', year:'numeric' });
+const fLonga = new Intl.DateTimeFormat('pt-BR', { timeZone:FUSO, weekday:'long', day:'numeric', month:'long' });
+const hh = d => fHora.format(d);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const normC = c => c.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().charAt(0) || c;
+const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9@._ ]/g,' ').replace(/\s+/g,' ').trim();
+const iniciais = n => String(n||'').trim().split(/\s+/).filter(Boolean).filter((w,i,a)=>i===0||i===a.length-1).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const primeiroNome = n => { const w = String(n||'').trim().split(/\s+/)[0] || ''; return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
+function duracao(ms){
+  const m = Math.max(0, Math.ceil(ms/60000));
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m/60), r = m % 60;
+  return h + 'h' + (r ? String(r).padStart(2,'0') : '');
+}
+function realce(nome, q){
+  const termos = norm(q).split(' ').filter(Boolean);
+  const chars = [...nome]; const n = chars.map(normC).join('');
+  const marca = new Array(chars.length).fill(false);
+  termos.forEach(t => { let i = n.indexOf(t); while (i >= 0){ for (let k=i;k<i+t.length;k++) marca[k]=true; i = n.indexOf(t, i+t.length); } });
+  let out = '', aberto = false;
+  chars.forEach((c,i) => { if (marca[i] && !aberto){ out += '<mark>'; aberto = true; } if (!marca[i] && aberto){ out += '</mark>'; aberto = false; } out += esc(c); });
+  return out + (aberto ? '</mark>' : '');
+}
+
+/* ---------- Janela do turno (mesma regra do servidor, só para exibição) ---------- */
+function janelaLocal(turno, ref){
+  const m = String(turno||'').match(/(\d{1,2})\s*[:hH]\s*(\d{2})/);
+  if (!m || +m[1] > 23 || +m[2] > 59) return { semHorario:true };
+  const ini = (+m[1])*60 + (+m[2]);
+  const r = ref.getTime();
+  const b = new Date(r - 3*3600e3); // Bahia = UTC-3 fixo
+  const meia = Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate()) + 3*3600e3;
+  const cands = [-1,0,1,2].map(d => { const t = meia + d*864e5 + ini*6e4; return { turnoMs:t, iniMs:t-MIN_ANTES*6e4, fimMs:t+MIN_DEPOIS*6e4 }; });
+  const ab = cands.find(c => r >= c.iniMs && r <= c.fimMs);
+  const j = ab || cands.find(c => c.iniMs > r);
+  return { aberta: !!ab, ...j };
+}
+
+/* ---------- Aparelho ---------- */
+function idAparelho(){
+  let id = ls.get(K.aparelho, null);
+  if (!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random()*16|0; return (c==='x' ? r : (r&3|8)).toString(16); }));
+    ls.set(K.aparelho, id);
+  }
+  return id;
+}
+
+/* ---------- API ---------- */
+async function api(acao, dados = {}, post = false){
+  if (DEMO) return demoApi(acao, dados);
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const res = post
+      ? await fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify({ acao, ...dados }), signal: ctrl.signal })
+      : await fetch(API_URL + '?' + new URLSearchParams({ acao, ...dados }), { signal: ctrl.signal });
+    const txt = await res.text();
+    try { return JSON.parse(txt); } catch(e){ throw new Error('RESPOSTA_INVALIDA'); }
+  } finally { clearTimeout(t); }
+}
+function ajustarRelogio(r){
+  if (r && r.agora){ estado.desvio = r.agora - Date.now(); ls.set(K.desvio, estado.desvio); }
+}
+
+/* ---------- Navegação ---------- */
+function mostrar(nome){
+  document.querySelectorAll('.tela').forEach(s => s.classList.toggle('ativa', s.dataset.tela === nome));
+  estado.tela = nome;
+  const t = $('saudTitulo');
+  if (nome === 'principal' && estado.perfil) t.textContent = 'Olá, ' + primeiroNome(estado.perfil.nome);
+  else if (nome === 'busca' || nome === 'confirmar') t.textContent = 'Vamos te identificar';
+  else if (nome === 'sucesso') t.textContent = 'Tudo certo!';
+  else t.textContent = 'Embarque com um toque';
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (nome === 'busca') setTimeout(() => $('busca').focus(), 350);
+}
+let toastT;
+function toast(msg, ms = 3800){
+  const el = $('toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), ms);
+}
+function aviso({ tipo='erro', titulo, msg, botao='Tentar novamente', acao, botao2, acao2 }){
+  const ic = $('aIc');
+  ic.className = 'aviso-ic' + (tipo === 'info' ? ' info' : tipo === 'ambar' ? ' ambar' : '');
+  ic.innerHTML = tipo === 'info' ? IC.info : tipo === 'cel' ? IC.cel : IC.alerta;
+  if (tipo === 'cel') ic.className = 'aviso-ic info';
+  $('aTitulo').textContent = titulo; $('aMsg').textContent = msg;
+  $('aBtn').textContent = botao; $('aBtn').onclick = acao || (() => mostrar('principal'));
+  const b2 = $('aBtn2');
+  if (botao2){ b2.style.display = ''; b2.textContent = botao2; b2.onclick = acao2; } else b2.style.display = 'none';
+  mostrar('aviso');
+}
+
+/* ---------- Relógio / rede ---------- */
+function tick(){
+  const d = agora();
+  $('relogio').textContent = hh(d);
+  const dt = fLonga.format(d); $('saudData').textContent = dt.charAt(0).toUpperCase() + dt.slice(1);
+  if (estado.tela === 'principal') renderStatus();
+}
+function rede(){
+  const on = navigator.onLine;
+  const el = $('rede'); el.classList.toggle('off', !on);
+  el.querySelector('span').textContent = on ? 'Online' : 'Sem internet';
+}
+
+/* =================== BOAS-VINDAS =================== */
+$('btnAceitar').onclick = () => {
+  ls.set(K.lgpd, { aceito:true, em: Date.now() });
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+  mostrar('busca');
+};
+
+/* =================== BUSCA =================== */
+let buscaT, buscaCtrl = 0;
+$('busca').addEventListener('input', e => {
+  const q = e.target.value;
+  $('limpar').classList.toggle('on', q.length > 0);
+  clearTimeout(buscaT);
+  if (norm(q).replace(/ /g,'').length < 3){
+    $('lista').innerHTML = ''; $('dica').textContent = 'Digite pelo menos 3 letras'; return;
+  }
+  $('dica').textContent = 'Buscando…';
+  $('lista').innerHTML = '<div class="esq"></div><div class="esq"></div><div class="esq"></div>';
+  buscaT = setTimeout(() => buscar(q), 280);
+});
+$('limpar').onclick = () => { $('busca').value = ''; $('busca').dispatchEvent(new Event('input')); $('busca').focus(); };
+
+async function buscar(q){
+  const meu = ++buscaCtrl;
+  try {
+    const r = await api('buscar', { q });
+    if (meu !== buscaCtrl) return;
+    if (!r.ok){ $('lista').innerHTML = ''; $('dica').textContent = r.mensagem || 'Não foi possível buscar agora.'; return; }
+    if (!r.resultados.length){
+      $('dica').textContent = '';
+      $('lista').innerHTML = '<div class="vazio"><b>Nenhum nome encontrado</b>Confira a grafia ou tente só o primeiro e o último nome.</div>';
+      return;
+    }
+    $('dica').textContent = r.total > r.resultados.length
+      ? `Mostrando ${r.resultados.length} de ${r.total}. Digite mais para filtrar.`
+      : 'Toque no seu nome';
+    $('lista').innerHTML = r.resultados.map((p, i) => `
+      <button class="item" data-i="${i}" style="animation-delay:${i*30}ms">
+        <div class="av">${esc(iniciais(p.nome))}</div>
+        <div class="tx">
+          <div class="nm">${realce(p.nome, q)}</div>
+          <div class="tags"><span class="tag l">${esc(p.linha || 'Sem roteiro')}</span>${p.turno ? `<span class="tag">${esc(p.turno)}</span>` : ''}</div>
+        </div>${IC.seta}
+      </button>`).join('');
+    $('lista').querySelectorAll('.item').forEach(b => b.onclick = () => selecionar(r.resultados[+b.dataset.i]));
+  } catch(e){
+    if (meu !== buscaCtrl) return;
+    $('lista').innerHTML = '';
+    $('dica').textContent = navigator.onLine ? 'Não foi possível buscar agora. Tente de novo.' : 'Sem internet. Conecte-se para encontrar seu nome.';
+  }
+}
+
+function selecionar(p){
+  estado.sel = p;
+  $('cfAv').textContent = iniciais(p.nome);
+  $('cfNome').textContent = p.nome;
+  $('cfTags').innerHTML = `<span class="tag l">${esc(p.linha || 'Sem roteiro')}</span>` +
+    (p.turno ? `<span class="tag">${esc(p.turno)}</span>` : '') +
+    (p.horaParada ? `<span class="tag">Parada ${esc(p.horaParada)}</span>` : '');
+  $('btnSouEu').disabled = false; $('btnSouEu').textContent = 'Sim, sou eu';
+  mostrar('confirmar');
+}
+$('btnVoltar').onclick = () => mostrar('busca');
+
+$('btnSouEu').onclick = async () => {
+  const b = $('btnSouEu'); b.disabled = true; b.textContent = 'Vinculando…';
+  try {
+    const r = await api('vincular', { ref: estado.sel.ref, aparelho: idAparelho() }, true);
+    ajustarRelogio(r);
+    if (!r.ok){
+      if (r.codigo === 'NOME_VINCULADO' || r.codigo === 'APARELHO_VINCULADO'){
+        aviso({ tipo:'cel', titulo: r.codigo === 'NOME_VINCULADO' ? 'Nome já cadastrado' : 'Celular já vinculado',
+          msg: r.mensagem, botao:'Voltar à busca', acao: () => mostrar('busca') });
+      } else {
+        aviso({ titulo:'Não foi possível vincular', msg: r.mensagem, botao:'Voltar à busca', acao: () => mostrar('busca') });
+      }
+      return;
+    }
+    salvarPerfil(r.passageiro);
+    if (r.checkin) marcarFeito(r.checkin);
+    $('busca').value = ''; $('lista').innerHTML = ''; $('limpar').classList.remove('on');
+    if ('vibrate' in navigator) navigator.vibrate(30);
+    abrirPrincipal();
+    toast('Pronto! Este celular agora está vinculado a você.');
+  } catch(e){
+    b.disabled = false; b.textContent = 'Sim, sou eu';
+    toast(navigator.onLine ? 'Não foi possível conectar. Tente de novo.' : 'Sem internet. Conecte-se para concluir o primeiro acesso.');
+  }
+};
+
+/* =================== PRINCIPAL =================== */
+function salvarPerfil(p){ estado.perfil = p; ls.set(K.perfil, p); }
+
+function abrirPrincipal(){
+  const p = estado.perfil;
+  $('pLinha').textContent = p.linha || '—';
+  $('pTurno').textContent = p.turno || '—';
+  $('pParada').textContent = p.horaParada || '—';
+  estado.botao = '';
+  renderStatus();
+  renderFila();
+  renderInstalar();
+  mostrar('principal');
+}
+
+function feitoNaJanela(j){
+  const f = ls.get(K.feito, null);
+  if (!f || f.ref !== estado.perfil.ref) return null;
+  if (j.semHorario){ return f.dia === fData.format(agora()) ? f.hora : null; }
+  return f.iniMs === j.iniMs ? f.hora : null;
+}
+function marcarFeito(hora){
+  const j = janelaLocal(estado.perfil.turno, agora());
+  ls.set(K.feito, { ref: estado.perfil.ref, hora, iniMs: j.iniMs || null, dia: fData.format(agora()) });
+}
+
+function setBotao(tipo, html){
+  const b = $('btnCheckin');
+  if (estado.botao === tipo + html) return;
+  estado.botao = tipo + html;
+  b.className = 'botao-ck' + (tipo !== 'pronto' ? ' ' + tipo : '');
+  $('btnCt').innerHTML = html;
+}
+
+function renderStatus(){
+  if (!estado.perfil) return;
+  const d = agora();
+  const j = janelaLocal(estado.perfil.turno, d);
+  const st = $('pStatus'), tx = $('pStatusTx'), ct = $('pConta'), prog = $('pProg');
+  const feito = feitoNaJanela(j);
+  const pend = ls.get(K.fila, []).some(x => x.ref === estado.perfil.ref);
+
+  if (estado.enviando) return;
+
+  if (feito || pend){
+    st.className = 'status ' + (pend && !feito ? 'aviso' : 'feito'); tx.textContent = pend && !feito ? 'Check-in salvo, aguardando internet' : 'Embarque já confirmado'; ct.textContent = feito || '';
+    prog.classList.remove('on');
+    setBotao('feito', `${IC.check}<b>Confirmado</b><small>${esc(feito ? 'às ' + feito : 'aguardando envio')}</small>`);
+    $('pLegenda').textContent = j.semHorario ? 'Novo check-in liberado amanhã.' : 'Próximo check-in no seu próximo turno.';
+    return;
+  }
+  if (j.semHorario){
+    st.className = 'status aviso'; tx.textContent = 'Turno sem horário cadastrado'; ct.textContent = '';
+    prog.classList.remove('on');
+    setBotao('pronto', `${IC.bus}<b>Confirmar<br>embarque</b>`);
+    $('pLegenda').textContent = 'Toque ao entrar no ônibus';
+    return;
+  }
+  if (j.aberta){
+    const total = j.fimMs - j.iniMs, resta = j.fimMs - d.getTime();
+    st.className = 'status aberta'; tx.textContent = 'Check-in liberado até ' + hh(new Date(j.fimMs)); ct.textContent = duracao(resta);
+    prog.classList.add('on'); $('pProgBar').style.width = Math.max(2, (resta/total)*100).toFixed(1) + '%';
+    setBotao('pronto', `${IC.bus}<b>Confirmar<br>embarque</b>`);
+    $('pLegenda').textContent = 'Toque ao entrar no ônibus';
+  } else {
+    st.className = 'status fechada'; tx.textContent = 'Check-in abre às ' + hh(new Date(j.iniMs)); ct.textContent = 'em ' + duracao(j.iniMs - d.getTime());
+    prog.classList.remove('on');
+    setBotao('fechado', `${IC.relogio}<b>Fora do horário</b><small>abre às ${hh(new Date(j.iniMs))}</small>`);
+    $('pLegenda').textContent = `Liberado de ${hh(new Date(j.iniMs))} às ${hh(new Date(j.fimMs))} (turno às ${hh(new Date(j.turnoMs))})`;
+  }
+}
+
+function obterGPS(){
+  return new Promise(res => {
+    if (!('geolocation' in navigator)) return res(null);
+    let fim = false;
+    const t = setTimeout(() => { if (!fim){ fim = true; res(null); } }, 9000);
+    navigator.geolocation.getCurrentPosition(
+      p => { if (fim) return; fim = true; clearTimeout(t); res({ lat:p.coords.latitude, lng:p.coords.longitude, acc:p.coords.accuracy }); },
+      () => { if (fim) return; fim = true; clearTimeout(t); res(null); },
+      { enableHighAccuracy:true, timeout:8000, maximumAge:30000 });
+  });
+}
+
+$('btnCheckin').onclick = async () => {
+  if (estado.enviando || !estado.perfil) return;
+  estado.enviando = true;
+  const p = estado.perfil;
+  const ts = Date.now();
+  setBotao('enviando', '<div class="giro"></div><small>Obtendo localização…</small>');
+  $('pLegenda').textContent = 'Permita o acesso à localização, se o celular pedir';
+  const gps = await obterGPS();
+  setBotao('enviando', '<div class="giro"></div><small>Registrando…</small>');
+  $('pLegenda').textContent = '';
+  const dados = { ref:p.ref, aparelho:idAparelho(), lat: gps ? gps.lat : '', lng: gps ? gps.lng : '', acc: gps ? gps.acc : '', ts };
+
+  try {
+    const r = await api('checkin', dados, true);
+    ajustarRelogio(r);
+    estado.enviando = false;
+    if (r.ok){
+      marcarFeito(r.hora);
+      if (r.passageiro) salvarPerfil(r.passageiro);
+      sucesso({ nome:p.nome, linha:(r.passageiro||p).linha, data:r.data, hora:r.hora, gps:!!gps, offline:false });
+      return;
+    }
+    tratarResposta(r);
+  } catch(e){
+    estado.enviando = false;
+    enfileirar({ ...dados, offline:true });
+    sucesso({ nome:p.nome, linha:p.linha, data:fData.format(new Date(ts)), hora:hh(new Date(ts)), gps:!!gps, offline:true });
+  }
+};
+
+function tratarResposta(r){
+  estado.botao = '';
+  if (r.codigo === 'DUPLICADO'){ marcarFeito(r.hora); renderStatus(); toast(r.mensagem); return; }
+  if (r.codigo === 'FORA_JANELA'){ renderStatus(); aviso({ tipo:'ambar', titulo:'Fora do horário', msg:r.mensagem, botao:'Entendi' }); return; }
+  if (r.codigo === 'OCUPADO'){ renderStatus(); toast(r.mensagem); return; }
+  if (tratarIdentidade(r)) return;
+  renderStatus();
+  aviso({ titulo:'Não foi possível registrar', msg: r.mensagem || 'Tente novamente.', botao:'Voltar' });
+}
+
+function tratarIdentidade(r){
+  if (r.codigo === 'SEM_VINCULO' || r.codigo === 'CADASTRO_NAO_ENCONTRADO'){
+    limparIdentidade();
+    aviso({ tipo:'info', titulo: r.codigo === 'SEM_VINCULO' ? 'Identificação removida' : 'Cadastro não encontrado',
+      msg: r.mensagem, botao:'Selecionar meu nome', acao: () => mostrar('busca') });
+    return true;
+  }
+  if (r.codigo === 'OUTRO_APARELHO'){
+    limparIdentidade();
+    aviso({ tipo:'cel', titulo:'Nome vinculado a outro aparelho', msg:r.mensagem, botao:'Voltar à busca', acao: () => mostrar('busca') });
+    return true;
+  }
+  return false;
+}
+function limparIdentidade(){
+  estado.perfil = null; ls.del(K.perfil); ls.del(K.feito);
+  ls.set(K.fila, []);
+}
+
+/* ---------- Sucesso ---------- */
+let sucT;
+function sucesso({ nome, linha, data, hora, gps, offline }){
+  $('sSelo').className = 'selo' + (offline ? ' off' : '');
+  $('sSelo').innerHTML = $('sSelo').innerHTML; // reinicia a animação
+  $('sTitulo').textContent = offline ? 'Check-in salvo' : 'Embarque confirmado';
+  $('sSub').textContent = offline ? 'Sem internet agora. Enviaremos assim que a conexão voltar.' : 'Boa viagem!';
+  $('sNome').textContent = nome; $('sLinha').textContent = linha || '—';
+  $('sData').textContent = data; $('sHora').textContent = hora;
+  $('sLocal').textContent = gps ? 'Registrada' : 'Não disponível';
+  if ('vibrate' in navigator) navigator.vibrate([40, 60, 40]);
+  mostrar('sucesso');
+  clearTimeout(sucT); sucT = setTimeout(() => { if (estado.tela === 'sucesso') abrirPrincipal(); }, 12000);
+}
+$('btnPronto').onclick = () => abrirPrincipal();
+
+/* =================== FILA OFFLINE =================== */
+function enfileirar(item){
+  const fila = ls.get(K.fila, []);
+  if (!fila.some(x => x.ref === item.ref && Math.abs(x.ts - item.ts) < 3*3600e3)) fila.push(item);
+  ls.set(K.fila, fila);
+  renderFila();
+}
+function renderFila(){
+  const n = ls.get(K.fila, []).length;
+  $('pFila').classList.toggle('on', n > 0);
+  $('pFilaTx').textContent = n === 1 ? '1 check-in aguardando internet para ser enviado' : `${n} check-ins aguardando internet`;
+}
+let sincronizando = false;
+async function sincronizar(){
+  if (sincronizando || !navigator.onLine) return;
+  let fila = ls.get(K.fila, []);
+  if (!fila.length) return;
+  sincronizando = true;
+  try {
+    for (const item of fila.slice()){
+      let r;
+      try { r = await api('checkin', item, true); } catch(e){ break; }
+      if (r.codigo === 'OCUPADO') break;
+      fila = ls.get(K.fila, []).filter(x => x.ts !== item.ts);
+      ls.set(K.fila, fila);
+      if (r.ok){ ajustarRelogio(r); if (estado.perfil && item.ref === estado.perfil.ref){ ls.set(K.feito, { ref:item.ref, hora:r.hora, iniMs: janelaLocal(estado.perfil.turno, new Date(item.ts)).iniMs || null, dia:r.data }); } toast('Check-in das ' + r.hora + ' enviado com sucesso.'); }
+      else if (r.codigo === 'DUPLICADO'){ /* já estava registrado */ }
+      else if (tratarIdentidade(r)) break;
+      else toast('Check-in offline não aceito: ' + (r.mensagem || ''), 6000);
+    }
+  } finally {
+    sincronizando = false;
+    renderFila(); estado.botao = ''; if (estado.tela === 'principal') renderStatus();
+  }
+}
+
+/* =================== INSTALAR (PWA) =================== */
+let promptInstalar = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; renderInstalar(); });
+window.addEventListener('appinstalled', () => { $('cardInstalar').classList.remove('on'); toast('App instalado!'); });
+function renderInstalar(){
+  const c = $('cardInstalar');
+  const fechado = ls.get(K.inst, 0);
+  if (standalone() || (fechado && Date.now() - fechado < 3*864e5)){ c.classList.remove('on'); return; }
+  if (promptInstalar){
+    $('instTx').innerHTML = '<b>Instale o app</b>Acesso em um toque e sua identificação fica salva.';
+    $('instOk').style.display = ''; c.classList.add('on');
+  } else if (ios){
+    $('instTx').innerHTML = `<b>Adicione à Tela de Início</b>Toque em Compartilhar <span style="display:inline-block;width:15px;vertical-align:-2px">${IC.share}</span> e depois em “Adicionar à Tela de Início”.`;
+    $('instOk').style.display = 'none'; c.classList.add('on');
+  } else c.classList.remove('on');
+}
+$('instOk').onclick = async () => {
+  if (!promptInstalar) return;
+  promptInstalar.prompt();
+  await promptInstalar.userChoice.catch(()=>{});
+  promptInstalar = null; renderInstalar();
+};
+$('instX').onclick = () => { ls.set(K.inst, Date.now()); renderInstalar(); };
+
+/* =================== INÍCIO =================== */
+async function atualizarPerfil(){
+  if (!estado.perfil || !navigator.onLine) return;
+  try {
+    const r = await api('perfil', { ref: estado.perfil.ref, aparelho: idAparelho() });
+    ajustarRelogio(r);
+    if (r.ok){
+      salvarPerfil(r.passageiro);
+      if (r.checkin) marcarFeito(r.checkin);
+      if (estado.tela === 'principal') abrirPrincipal();
+    } else if (estado.tela === 'principal' || estado.tela === 'carregando') tratarIdentidade(r);
+  } catch(e){ /* sem conexão: segue com os dados salvos */ }
+}
+
+function iniciar(){
+  if (DEMO) $('demo').classList.add('on');
+  idAparelho();
+  tick(); rede();
+  setInterval(tick, 1000);
+  window.addEventListener('online', () => { rede(); sincronizar(); atualizarPerfil(); });
+  window.addEventListener('offline', rede);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden){ tick(); sincronizar(); atualizarPerfil(); } });
+  setInterval(sincronizar, 30000);
+
+  if (!ls.get(K.lgpd, null)) return mostrar('boasvindas');
+  const p = ls.get(K.perfil, null);
+  if (!p) return mostrar('busca');
+  estado.perfil = p;
+  abrirPrincipal();
+  atualizarPerfil();
+  sincronizar();
+}
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
+}
+
+/* =================== MODO DEMONSTRAÇÃO =================== */
+// Simula o servidor com dados de exemplo enquanto API_URL estiver vazio.
+const DEMO_BASE = (() => {
+  const d = new Date(Date.now() + 40*60000);
+  const b = new Date(d.getTime() - 3*3600e3);
+  const prox = String(b.getUTCHours()).padStart(2,'0') + ':' + String(Math.floor(b.getUTCMinutes()/10)*10).padStart(2,'0');
+  const lista = [
+    ['Maria Aparecida Silva', 'Rota 26', 'Turno B · ' + prox + ' às 15:48', '05:12'],
+    ['Maria Silva Santos', 'Rota 101', 'Turno C · 22:00 às 07:00', '20:45'],
+    ['José Carlos Oliveira', 'Rota 9', 'Turno B · ' + prox + ' às 15:48', '05:20'],
+    ['João Pedro Souza', 'Rota 16', 'ADM · 08:00 às 17:48', '06:55'],
+    ['Ana Beatriz Conceição', 'Rota 159', 'ADM · 08:00 às 17:48', '06:40'],
+    ['Antônio Marcos Ferreira', 'Rota 26', 'Turno C · 14:00 às 23:48', '12:35'],
+    ['Carla Simone Ribeiro', 'Rota 101', 'Turno B · ' + prox + ' às 15:48', '04:58'],
+    ['Lucas Gabriel Almeida', 'Rota 9', 'Turno C · 22:00 às 07:00', '20:30'],
+    ['Fernanda Lima Costa', 'Rota 16', 'Turno B · ' + prox + ' às 15:48', '05:05'],
+    ['Paulo Henrique Nascimento', 'Rota 159', 'Turno B · ' + prox + ' às 15:48', '05:00'],
+    ['Juliana Matos Barreto', 'Rota 26', 'ADM · 08:00 às 17:48', '06:50'],
+    ['Roberto Carlos Menezes', 'Rota 101', 'Sem horário', '']
+  ];
+  return lista.map((x, i) => ({ ref:'demo' + i, nome:x[0], linha:x[1], turno:x[2], horaParada:x[3] }));
+})();
+function demoApi(acao, d){
+  return new Promise(res => setTimeout(() => res(demoResp(acao, d)), 350 + Math.random()*350));
+}
+function demoResp(acao, d){
+  const vinc = ls.get('ckbyd.demo.vinc', {}), cks = ls.get('ckbyd.demo.cks', {});
+  const pub = p => ({ ...p });
+  const p = DEMO_BASE.find(x => x.ref === d.ref);
+  const now = new Date();
+  if (acao === 'buscar'){
+    const t = norm(d.q).split(' ');
+    const r = DEMO_BASE.filter(x => t.every(w => norm(x.nome).includes(w)));
+    return { ok:true, total:r.length, resultados:r.slice(0,10).map(pub) };
+  }
+  if (!p) return { ok:false, codigo:'CADASTRO_NAO_ENCONTRADO', mensagem:'Seu cadastro não foi encontrado. Procure a equipe de transporte.' };
+  if (acao === 'vincular'){
+    if (p.ref === 'demo1') return { ok:false, codigo:'NOME_VINCULADO', mensagem:'Este nome já está cadastrado em outro aparelho. Procure a equipe de transporte.' };
+    vinc[p.ref] = d.aparelho; ls.set('ckbyd.demo.vinc', vinc);
+    return { ok:true, passageiro:pub(p), agora:now.getTime() };
+  }
+  if (vinc[p.ref] !== d.aparelho) return { ok:false, codigo:'SEM_VINCULO', mensagem:'A identificação deste celular foi removida. Selecione seu nome novamente.' };
+  const ref = d.offline ? new Date(d.ts) : now;
+  const j = janelaLocal(p.turno, ref);
+  const chave = p.ref + '|' + (j.semHorario ? fData.format(ref) : j.iniMs);
+  if (acao === 'perfil') return { ok:true, passageiro:pub(p), checkin: cks[chave] || null, agora:now.getTime() };
+  if (acao === 'checkin'){
+    if (!j.semHorario && !j.aberta) return { ok:false, codigo:'FORA_JANELA', mensagem:`Check-in disponível apenas entre ${hh(new Date(j.iniMs))} e ${hh(new Date(j.fimMs))} para o seu turno.` };
+    if (cks[chave]) return { ok:false, codigo:'DUPLICADO', mensagem:'Check-in já realizado às ' + cks[chave] + '.', hora:cks[chave] };
+    cks[chave] = hh(ref); ls.set('ckbyd.demo.cks', cks);
+    return { ok:true, passageiro:pub(p), data:fData.format(ref), hora:hh(ref), status:'OK', agora:now.getTime() };
+  }
+  return { ok:true };
+}
+
+iniciar();
+</script>
+</body>
+</html>
